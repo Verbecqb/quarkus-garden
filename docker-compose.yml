@@ -1,0 +1,63 @@
+services:
+
+  zookeeper:
+    image: confluentinc/cp-zookeeper:7.4.4
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+    ports:
+      - 22181:2181
+
+  garden-kafka:
+    image: confluentinc/cp-kafka:7.4.4
+    container_name: garden-kafka
+    depends_on:
+      - apicurio
+      - zookeeper
+    ports:
+      - '29092:29092'
+    environment:
+      LOG_DIR: /tmp/logs
+      KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:9092
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://localhost:9092,PLAINTEXT_HOST://localhost:29092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+
+
+  apicurio:
+    image: quay.io/apicurio/apicurio-registry-mem:2.4.2.Final
+    container_name: apicurio
+    ports:
+      - "8086:8086"
+    environment:
+      REGISTRY_AUTH_ANONYMOUS_READ_ACCESS_ENABLED: "true"
+      QUARKUS_HTTP_PORT: 8086
+
+  rest-items:
+    container_name: rest-items
+    image: garden-app/rest-items:1.0
+    depends_on:
+      - apicurio
+      - garden-kafka
+    environment:
+      MP_MESSAGING_CONNECTOR_SMALLRYE_KAFKA_APICURIO_REGISTRY_URL: http://apicurio:8086/apis/registry/v2
+      KAFKA_BOOTSTRAP_SERVERS: PLAINTEXT://localhost:9092
+    ports:
+      - '7806:7806'
+    restart: on-failure
+
+  rest-planting-allocation:
+    container_name: rest-planting-allocation-service
+    image: garden-app/rest-plant-allocation:1.0
+    depends_on:
+      - apicurio
+      - garden-kafka
+    environment:
+      MP_MESSAGING_CONNECTOR_SMALLRYE_KAFKA_APICURIO_REGISTRY_URL: http://apicurio:8086/apis/registry/v2
+      KAFKA_BOOTSTRAP_SERVERS: PLAINTEXT://localhost:9092
+    ports:
+      - '7808:7808'
+    restart: on-failure

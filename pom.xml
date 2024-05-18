@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <!-- The Basics -->
+    <groupId>org.garden</groupId>
+    <artifactId>mygarden</artifactId>
+    <version>1.0</version>
+    <packaging>pom</packaging>
+    <name>Quarkus app :: My Robotic Garden</name>
+    <modules>
+        <module>rest-planner</module>
+        <module>rest-items</module>
+        <module>rest-planting-allocation</module>
+        <module>rest-item-api</module>
+        <module>rest-config-service</module>
+    </modules>
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>io.quarkus.platform</groupId>
+                <artifactId>quarkus-bom</artifactId>
+                <version>3.9.2</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+
+
+
+
+</project>

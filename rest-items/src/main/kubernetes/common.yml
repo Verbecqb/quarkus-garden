@@ -1,0 +1,146 @@
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: rest-items-config
+  labels:
+    app: rest-items
+    application: items-service
+    system: quarkus-robotic-garden
+data:
+    quarkus.datasource.jdbc.url: jdbc:postgresql://items-db:5432/items_database
+    kafka.bootstrap.servers: PLAINTEXT://items-kafka:9092
+---
+apiVersion: v1
+kind: Secret
+type: Opaque
+metadata:
+  name: rest-items-config-creds
+  labels:
+    app: rest-items
+    application: items-service
+    system: quarkus-robotic-garden
+data:
+  quarkus.datasource.username: c3VwZXJiYWQ=
+  quarkus.datasource.password: c3VwZXJiYWQ=
+---
+apiVersion: v1
+kind: Secret
+type: Opaque
+metadata:
+  name: db-config
+  labels:
+    app: items-db
+    application: items-service
+    system: quarkus-robotic-garden
+data:
+  POSTGRES_DB: aXRlbXNfZGF0YWJhc2U=
+  POSTGRES_USER: c3VwZXJiYWQ=
+  POSTGRES_PASSWORD: c3VwZXJiYWQ=
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: items-db
+    application: items-service
+    system: quarkus-robotic-garden
+    app.kubernetes.io/part-of: items-service
+  name: items-db
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      name: items-db
+  template:
+    metadata:
+      labels:
+        application: items-service
+        name: items-db
+    spec:
+      containers:
+        - image: postgres:latest
+          name: items-db
+          ports:
+            - containerPort: 5432
+          envFrom:
+            - secretRef:
+                name: db-config
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    name: items-db
+    application: items-service
+    system: quarkus-robotic-garden
+  name: items-db
+spec:
+  ports:
+    - port: 5432
+      protocol: TCP
+      targetPort: 5432
+  selector:
+    name: items-db
+  type: NodePort
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: items-kafka
+    application: items-service
+    system: quarkus-robotic-garden
+    app.kubernetes.io/part-of: items-service
+    app.openshift.io/runtime: amq
+  name: items-kafka
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      name: items-kafka
+  template:
+    metadata:
+      labels:
+        application: items-service
+        name: items-kafka
+        system: quarkus-robotic-garden
+    spec:
+      containers:
+        - image: quay.io/strimzi/kafka:0.34.0-kafka-3.4.0
+          name: items-kafka
+          ports:
+            - containerPort: 9092
+          command:
+            - "sh"
+            - "-c"
+            - "export CLUSTER_ID=$(bin/kafka-storage.sh random-uuid) && bin/kafka-storage.sh format -t ${CLUSTER_ID} -c config/kraft/server.properties && bin/kafka-server-start.sh config/kraft/server.properties --override advertised.listeners=${KAFKA_ADVERTISED_LISTENERS}"
+          env:
+            - name: LOG_DIR
+              value: /tmp/logs
+            - name: KAFKA_ADVERTISED_LISTENERS
+              value: PLAINTEXT://items-kafka:9092
+          resources:
+            limits:
+              memory: 768Mi
+            requests:
+              memory: 128Mi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    name: items-kafka
+    application: items-service
+    system: quarkus-robotic-garden
+  name: items-kafka
+spec:
+  ports:
+    - port: 9092
+      protocol: TCP
+      targetPort: 9092
+  selector:
+    name: items-kafka
+  type: NodePort
+---

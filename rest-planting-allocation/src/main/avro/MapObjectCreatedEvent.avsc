@@ -1,0 +1,30 @@
+{
+  "namespace": "org.garden.domain.events.schema",
+  "type": "record",
+  "name": "MapObjectCreatedEvent",
+  "fields": [
+    {
+      "name": "garden_id",
+      "type": "long"
+    },
+    {
+      "name": "name",
+      "type": "string"
+    },
+    {
+      "name": "width",
+      "type": "int"
+    },
+    {
+      "name": "length",
+      "type": "int"
+    },
+    {
+      "name": "coordinates",
+      "type": {
+        "type": "array",
+        "items" : "int"
+      } 
+    }
+  ]
+}

@@ -1,0 +1,33 @@
+{
+  "namespace": "org.garden.domain.events.schema",
+  "type": "record",
+  "name": "ItemCreatedEvent",
+  "fields": [
+    {
+      "name": "itemId",
+      "type": "long"
+    },
+    {
+      "name": "spaceRequired",
+      "type": {
+        "type": "array",
+        "name": "SpaceRequired",
+        "items" : "int"
+      } 
+    },
+    {
+      "name": "from",
+      "type": {
+        "type": "int",
+        "logicalType": "date"
+      }
+    },
+    {
+      "name": "to",
+      "type": {
+        "type": "int",
+        "logicalType": "date"
+      }
+    }
+  ]
+}

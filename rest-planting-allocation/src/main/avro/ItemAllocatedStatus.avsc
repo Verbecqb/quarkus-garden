@@ -1,0 +1,19 @@
+{
+  "namespace": "org.garden.domain.events.schema",
+  "type": "record",
+  "name": "AllocationEvent",
+  "fields": [
+    {
+      "name": "itemId",
+      "type": "long"
+    },
+    {
+      "name": "allocationStatus",
+      "type": {
+        "type": "enum",
+        "name": "AllocationStatus",
+        "symbols" : ["RESERVED", "REJECTED"]
+      }
+    }
+  ]
+}
